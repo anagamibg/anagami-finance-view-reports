@@ -1,0 +1,24 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Laravel / PHP (this module is not a standalone application)
+/vendor/
+/node_modules/
+.env
+.env.*
+/storage/*.key
+/public/hot
+/public/storage
+
+# Logs and temporary files
+*.log
+*.tmp
+/tmp/
+
+# Build / test artefacts
+/.phpunit.cache/
+.phpunit.result.cache
