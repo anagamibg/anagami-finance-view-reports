@@ -1,0 +1,9 @@
+// Extract of app/Console/Kernel.php - registration and schedule of the report commands
+
+25:use App\Console\Commands\SendDailyTimelogReport;
+29:use App\Console\Commands\SendMonthlyAttendanceReport;
+80:        SendMonthlyAttendanceReport::class,
+81:        SendDailyTimelogReport::class,
+150:        $schedule->command('send-daily-timelog-report')->dailyAt('02:30');
+166:        $schedule->command('send-monthly-attendance-report')->monthly();
+183:        $schedule->command('databackd:send-reports')->dailyAt('07:00')->withoutOverlapping();

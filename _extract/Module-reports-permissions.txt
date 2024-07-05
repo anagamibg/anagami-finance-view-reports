@@ -1,0 +1,55 @@
+// Extract of app/Models/Module.php - permissions of the 'reports' module (shared model, not copied)
+
+        [
+            'module_name' => 'reports',
+            'description' => 'User can manage permission of particular report',
+            'permissions' => [
+                [
+                    'allowed_permissions' => Permission::ALL_NONE,
+                    'is_custom' => 1,
+                    'name' => 'view_task_report',
+                ],
+                [
+                    'allowed_permissions' => Permission::ALL_NONE,
+                    'is_custom' => 1,
+                    'name' => 'view_time_log_report',
+                ],
+                [
+                    'allowed_permissions' => Permission::ALL_4_ADDED_1_OWNED_2_BOTH_3_NONE_5,
+                    'is_custom' => 1,
+                    'name' => 'view_finance_report',
+
+                ],
+                [
+                    'allowed_permissions' => Permission::ALL_NONE,
+                    'display_name' => 'View Income Vs Expense Report',
+                    'is_custom' => 1,
+                    'name' => 'view_income_expense_report',
+                ],
+                [
+                    'allowed_permissions' => Permission::ALL_NONE,
+                    'is_custom' => 1,
+                    'name' => 'view_leave_report',
+                ],
+                [
+                    'allowed_permissions' => Permission::ALL_NONE,
+                    'is_custom' => 1,
+                    'name' => 'view_attendance_report',
+                ],
+                [
+                    'allowed_permissions' => Permission::ALL_NONE,
+                    'is_custom' => 1,
+                    'name' => 'view_expense_report',
+                ],
+                [
+                    'allowed_permissions' => Permission::ALL_NONE,
+                    'is_custom' => 1,
+                    'name' => 'view_lead_report',
+                ],
+                [
+                    'allowed_permissions' => Permission::ALL_NONE,
+                    'is_custom' => 1,
+                    'name' => 'view_sales_report',
+                ]
+            ]
+        ],

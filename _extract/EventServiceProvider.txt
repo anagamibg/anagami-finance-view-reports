@@ -1,0 +1,8 @@
+// Extract of app/Providers/EventServiceProvider.php (property $listen)
+
+12:use App\Events\DailyTimeLogReportEvent;
+75:use App\Events\MonthlyAttendanceEvent;
+95:use App\Listeners\DailyTimeLogReportListener;
+157:use App\Listeners\MonthlyAttendanceListener;
+586:        MonthlyAttendanceEvent::class => [MonthlyAttendanceListener::class],
+587:        DailyTimeLogReportEvent::class => [DailyTimeLogReportListener::class],
