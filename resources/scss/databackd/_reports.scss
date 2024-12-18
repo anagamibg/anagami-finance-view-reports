@@ -1,0 +1,535 @@
+// AFV UI package partial: reports (S9 / P4). Owned by one package agent; compiled by S9.
+// Screens: reports/_filters (shared with the financial dashboard), builder, pnl, cashflow, counterparties, saved.
+// Only CSS variables (--dbk-*), no Bootstrap SCSS variables/mixins.
+
+// ---------------------------------------------------------------- shared filter bar (_filters.blade.php)
+.dbk-reports-filters {
+    .dbk-reports-periods {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--dbk-space-3) var(--dbk-space-4);
+        margin-bottom: var(--dbk-space-4);
+        padding-bottom: var(--dbk-space-4);
+        border-bottom: 1px solid var(--dbk-border);
+    }
+
+    .dbk-reports-dates {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--dbk-space-2);
+
+        > label {
+            margin: 0;
+            font-size: var(--dbk-fs-xs);
+            font-weight: 500;
+            color: var(--dbk-text-muted);
+        }
+
+        > input { width: 150px; }
+    }
+
+    .dbk-filter .bootstrap-select { width: 100% !important; }
+
+    // S12: folded bar of a phone (date range + "Filters (N)"); hidden on larger screens and without JS
+    .dbk-reports-filters-bar { display: none; }
+
+    // S12: the page is reloading with the new filters
+    &.is-loading .dbk-reports-periods,
+    &.is-loading .dbk-filters-row { opacity: .6; pointer-events: none; transition: opacity .15s; }
+
+    @media (max-width: 767.98px) {
+        &.is-collapsible .dbk-reports-filters-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--dbk-space-3);
+        }
+
+        .dbk-reports-filters-range { font-size: var(--dbk-fs-sm); color: var(--dbk-text-2); font-variant-numeric: tabular-nums; }
+        .dbk-reports-filters-toggle { min-height: 40px; white-space: nowrap; }
+
+        &.is-collapsible .dbk-reports-periods { margin-bottom: var(--dbk-space-3); padding-bottom: var(--dbk-space-3); }
+        &.is-collapsible .dbk-filters-row { margin-top: var(--dbk-space-4); }
+        &.is-collapsed .dbk-filters-row,
+        &.is-collapsed .dbk-reports-dates { display: none; }
+        &.is-collapsible:not(.is-collapsed) .dbk-reports-filters-range { visibility: hidden; }
+
+        // quick periods: one scrollable row instead of a clipped one
+        .dbk-reports-periods .dbk-segmented { max-width: 100%; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+        .dbk-reports-periods .dbk-segmented > button { white-space: nowrap; min-height: 40px; }
+    }
+
+    @media (max-width: 575.98px) {
+        .dbk-reports-periods { gap: var(--dbk-space-3); }
+        .dbk-reports-dates {
+            width: 100%;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            > input { width: 100%; }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- shared bits
+.dbk-reports {
+    .dbk-reports-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--dbk-space-2);
+
+        .btn-group > .btn { white-space: nowrap; }
+    }
+
+    .dbk-reports-hint {
+        margin: var(--dbk-space-2) 0 0;
+        font-size: var(--dbk-fs-xs);
+        line-height: 16px;
+        color: var(--dbk-text-muted);
+    }
+
+    .dbk-reports-chart-label {
+        margin: 0 0 var(--dbk-space-2);
+        font-size: var(--dbk-fs-xs);
+        font-weight: 600;
+        color: var(--dbk-text-2);
+    }
+
+    .dbk-reports-notes {
+        font-size: var(--dbk-fs-xs);
+        line-height: 18px;
+        color: var(--dbk-text-muted);
+        margin-bottom: var(--dbk-space-4);
+
+        .dbk-reports-notes-title { font-weight: 600; color: var(--dbk-text-2); margin-bottom: 4px; }
+        ul { padding-left: var(--dbk-space-4); margin: 0; }
+    }
+
+    .dbk-grid > .dbk-reports-span-7 { grid-column: span 7; }
+    .dbk-grid > .dbk-reports-span-5 { grid-column: span 5; }
+
+    @media (max-width: 1199.98px) {
+        .dbk-grid > .dbk-reports-span-7,
+        .dbk-grid > .dbk-reports-span-5 { grid-column: span 12; }
+    }
+
+    // Zebra over the visible top-level rows (rows computed in Blade, the hidden children don't break it)
+    .dbk-table tbody tr.is-alt > * { background-color: var(--dbk-surface-2); }
+    .dbk-table tbody tr.is-alt:hover > *,
+    .dbk-table tbody tr:hover > * { background-color: var(--dbk-accent-soft); }
+
+    // The totals of a long table stay visible at the bottom of the scroll box
+    .dbk-table-wrap--scroll .dbk-table tfoot td {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+    }
+
+    .dbk-table-wrap--scroll .dbk-table--sticky-first tfoot td:first-child { z-index: 3; }
+
+    @media (max-width: 575.98px) {
+        .dbk-card-header { flex-wrap: wrap; }
+        .dbk-card-actions { max-width: 100%; }
+        .dbk-page-actions,
+        .dbk-reports-actions { width: 100%; }
+        .dbk-reports-actions > .btn-group { flex: 1 1 auto; display: flex; > .btn { flex: 1 1 0; } }
+    }
+}
+
+// Save button + modal (saved/_save-button) and the export buttons sit in the page header
+.dbk-reports .dbk-page-actions #sr-open-modal { white-space: nowrap; }
+
+// ---------------------------------------------------------------- builder
+.dbk-reports-builder {
+    .rb-label {
+        display: block;
+        margin: 0;
+        font-size: var(--dbk-fs-xs);
+        font-weight: 500;
+        color: var(--dbk-text-muted);
+    }
+
+    .dbk-reports-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: var(--dbk-space-3) var(--dbk-space-4);
+
+        .dbk-filter { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .bootstrap-select { width: 100% !important; }
+    }
+
+    .dbk-reports-constructor-foot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: var(--dbk-space-3) var(--dbk-space-5);
+        margin-top: var(--dbk-space-4);
+        padding-top: var(--dbk-space-4);
+        border-top: 1px solid var(--dbk-border);
+
+        .dbk-filters-actions { display: flex; gap: var(--dbk-space-2); margin-left: auto; }
+    }
+
+    .dbk-reports-checks {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 var(--dbk-space-5);
+
+        .form-group, .form-check { margin-bottom: 0; }
+    }
+
+    .dbk-reports-chart-type { display: flex; flex-direction: column; gap: 4px; }
+
+    .rb-chart-switch > button { display: inline-flex; align-items: center; }
+
+    // Pivot table: sortable headers, sticky first + total column, heat cells
+    .rb-table {
+        th, td { white-space: nowrap; }
+
+        thead th[data-col] { cursor: pointer; user-select: none; }
+        thead th[data-col]:hover { color: var(--dbk-text); }
+
+        .rb-sort {
+            display: inline-block;
+            width: 10px;
+            margin-left: 4px;
+            color: var(--dbk-accent);
+            font-size: 10px;
+        }
+
+        .rb-first {
+            min-width: 190px;
+            max-width: 280px;
+            white-space: normal;
+            font-weight: 500;
+        }
+
+        .rb-totalcol {
+            position: sticky;
+            right: 0;
+            z-index: 1;
+            font-weight: 600;
+            background-color: var(--dbk-surface-2);
+            box-shadow: -1px 0 0 var(--dbk-border);
+        }
+
+        thead th.rb-totalcol { z-index: 3; }
+        tfoot td.rb-totalcol { z-index: 3; }
+
+        tbody .rb-cell[style] { background-color: rgba(var(--rb-heat), var(--h)); }
+        tbody tr:hover .rb-cell[style] { box-shadow: inset 0 0 0 100px rgba(29, 111, 214, 0.06); }
+
+        .rb-zero { color: var(--dbk-border-strong); }
+        .rb-sub { display: block; font-size: 11px; font-weight: 400; line-height: 1.25; color: var(--dbk-text-muted); }
+        .rb-chg { display: block; font-size: 11px; font-weight: 500; line-height: 1.25; }
+    }
+
+    .rb-heat-revenue { --rb-heat: 22, 160, 106; }
+    .rb-heat-expense { --rb-heat: 227, 73, 72; }
+    .rb-heat-all { --rb-heat: 42, 120, 214; }
+
+    .rb-cmp .rb-first { min-width: 190px; white-space: normal; }
+
+    .rb-notice { font-size: var(--dbk-fs-sm); }
+
+    @media (max-width: 767.98px) {
+        .rb-table .rb-first { min-width: 130px; max-width: 170px; }
+        // the total column scrolls with the others on a phone; the header/footer cells keep their top/bottom stickiness
+        // but must not stick to the right edge (it covered the 2nd column of the totals row)
+        .rb-table .rb-totalcol { right: auto; box-shadow: none; }
+        .rb-table tbody .rb-totalcol { position: static; }
+        .dbk-reports-constructor-foot .dbk-filters-actions { width: 100%; margin-left: 0; > * { flex: 1; } }
+    }
+
+    @media print {
+        .rb-no-print { display: none !important; }
+    }
+}
+
+body.dark-theme .dbk-reports-builder {
+    .rb-heat-revenue { --rb-heat: 31, 184, 123; }
+    .rb-heat-expense { --rb-heat: 239, 107, 106; }
+    .rb-heat-all { --rb-heat: 57, 135, 229; }
+}
+
+// ---------------------------------------------------------------- P&L
+.dbk-reports-pnl {
+    .dbk-reports-toggles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--dbk-space-1);
+
+        .btn-link { color: var(--dbk-text-2); font-size: var(--dbk-fs-sm); padding: 4px 8px; }
+        .btn-link:hover { color: var(--dbk-accent); text-decoration: none; }
+    }
+
+    .pnl-table {
+        th, td { white-space: nowrap; }
+
+        .pnl-name { min-width: 300px; max-width: 360px; }
+        .pnl-th-sub { font-size: 11px; font-weight: 400; color: var(--dbk-text-muted); }
+        .pnl-total { font-weight: 600; }
+        .pnl-pct { color: var(--dbk-text-muted); }
+        .pnl-zero { color: var(--dbk-text-muted); }
+
+        tr.pnl-section > * {
+            font-size: var(--dbk-fs-xs);
+            color: var(--dbk-text-2);
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+
+        tr.pnl-subtotal > * { font-weight: 600; border-top: 1px solid var(--dbk-border-strong); }
+        tr.pnl-result > * { background-color: var(--dbk-accent-soft); }
+        tr.pnl-result:hover > * { background-color: var(--dbk-accent-soft); }
+
+        tr.pnl-account > * { color: var(--dbk-text-2); font-size: 12.5px; }
+        tr.pnl-account .pnl-name { padding-left: 44px; }
+
+        tr.pnl-has-children { cursor: pointer; }
+        tr.pnl-child { display: none; }
+        tr.pnl-child.pnl-open { display: table-row; }
+
+        .pnl-code {
+            display: inline-block;
+            min-width: 54px;
+            margin-right: 6px;
+            font-size: 11.5px;
+            color: var(--dbk-text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pnl-toggle { display: inline-block; width: 16px; margin-right: 4px; color: var(--dbk-text-muted); transition: transform 0.15s; }
+        tr.pnl-expanded .pnl-toggle { transform: rotate(90deg); color: var(--dbk-accent); }
+        .pnl-toggle-spacer { display: inline-block; width: 20px; }
+
+        a.pnl-link { color: inherit; border-bottom: 1px dotted var(--dbk-text-muted); }
+        a.pnl-link:hover { color: var(--dbk-accent); border-bottom-color: var(--dbk-accent); text-decoration: none; }
+    }
+
+    // The section label spans the frozen first column only; its empty filler stays in the same band
+    .pnl-table tr.pnl-section > :first-child { white-space: nowrap; }
+
+    .pnl-print-header { display: none; }
+
+    @media (max-width: 767.98px) {
+        .pnl-table .pnl-name { min-width: 190px; max-width: 220px; white-space: normal; }
+        .pnl-table tr.pnl-account .pnl-name { padding-left: 28px; }
+        .pnl-table .pnl-code { min-width: 0; margin-right: 4px; }
+        .pnl-table .pnl-toggle { margin-right: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .pnl-table .pnl-toggle { transition: none; }
+    }
+
+    @media print {
+        @page { size: landscape; margin: 10mm; }
+        .pnl-no-print { display: none !important; }
+        .pnl-print-header { display: block; margin-bottom: 10px; }
+        .dbk-card { box-shadow: none !important; }
+        .pnl-scroll { overflow: visible !important; max-height: none !important; }
+        .pnl-table { font-size: 9px; }
+        .pnl-table th, .pnl-table td { padding: 3px 5px; position: static !important; box-shadow: none !important; }
+        .pnl-table .pnl-name { min-width: 0; max-width: none; }
+        .pnl-table, .pnl-table th, .pnl-table td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+}
+
+@media print {
+    body:has(.dbk-reports-pnl) {
+        header.main-header, aside, .databackd-report-filters, .preloader-container, .filter-box, .mobile-close-sidebar-panel { display: none !important; }
+        .main-container { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+        .content-wrapper { padding: 0 !important; }
+    }
+}
+
+// ---------------------------------------------------------------- cash flow
+.dbk-reports-cashflow {
+    .cf-table {
+        th, td { white-space: nowrap; }
+
+        .cf-label { min-width: 300px; max-width: 330px; white-space: normal; }
+
+        .cf-total {
+            position: sticky;
+            right: 0;
+            z-index: 1;
+            font-weight: 600;
+            background-color: var(--dbk-surface-2);
+            box-shadow: -1px 0 0 var(--dbk-border-strong);
+        }
+
+        thead .cf-total { z-index: 3; }
+
+        tr.cf-strong > * { background-color: var(--dbk-accent-soft); }
+        tr.cf-child > * { color: var(--dbk-text-2); }
+        tr.cf-child .cf-label { padding-left: 34px; }
+
+        .cf-toggle { cursor: pointer; display: inline-block; width: 16px; color: var(--dbk-accent); transition: transform 0.15s; }
+        .cf-toggle.open { transform: rotate(90deg); }
+        .cf-hint { color: var(--dbk-text-muted); cursor: help; margin-left: 4px; font-weight: 400; }
+    }
+
+    .cf-print-title { display: none; }
+
+    @media (max-width: 767.98px) {
+        .cf-table .cf-label { min-width: 180px; max-width: 210px; }
+        .cf-table .cf-total { position: static; box-shadow: none; }
+    }
+
+    @media print {
+        @page { size: landscape; margin: 10mm; }
+        .cf-no-print { display: none !important; }
+        .cf-print-title { display: block; margin-bottom: 12px; }
+        .dbk-card { box-shadow: none !important; }
+        .cf-table-wrap { overflow: visible !important; max-height: none !important; }
+        .cf-table { font-size: 9px; }
+        .cf-table th, .cf-table td { padding: 3px 5px; position: static !important; box-shadow: none !important; }
+        .cf-table .cf-label { min-width: 0; max-width: none; }
+        tr.cf-child { display: table-row !important; }
+        .cf-chart-card { page-break-inside: avoid; }
+    }
+}
+
+@media print {
+    body:has(.dbk-reports-cashflow) {
+        .main-header, aside, .databackd-report-filters, .preloader-container { display: none !important; }
+        .main-container { margin: 0 !important; padding: 0 !important; width: 100% !important; background: #fff !important; }
+        .content-wrapper { padding: 0 !important; }
+    }
+}
+
+// ---------------------------------------------------------------- counterparties (index + show)
+.cp-report {
+    #cp-table {
+        th.cp-sortable { cursor: pointer; user-select: none; }
+        th.cp-sortable:after { content: ' \2195'; color: var(--dbk-border-strong); }
+        th.cp-asc:after { content: ' \25B2'; color: var(--dbk-accent); }
+        th.cp-desc:after { content: ' \25BC'; color: var(--dbk-accent); }
+
+        .cp-name { min-width: 200px; max-width: 320px; white-space: normal; }
+    }
+
+    .cp-link { font-weight: 500; color: var(--dbk-accent); }
+    .cp-link.is-none { color: var(--dbk-text-muted); }
+
+    .cp-share { display: flex; align-items: center; gap: var(--dbk-space-2); white-space: nowrap; }
+
+    .cp-bar {
+        width: 70px;
+        height: 6px;
+        flex: none;
+        overflow: hidden;
+        border-radius: 3px;
+        background: var(--dbk-accent-soft);
+
+        i { display: block; height: 6px; background: var(--dbk-profit); }
+    }
+
+    svg.cp-spark { display: block; }
+
+    .dbk-kpi-grid--5 .dbk-kpi-value { font-size: 20px; }
+    .cp-kpi-largest .dbk-kpi-value { font-size: var(--dbk-fs-lg); line-height: 30px; }
+
+    .dbk-reports-search {
+        display: flex;
+        align-items: center;
+        gap: var(--dbk-space-2);
+        width: 280px;
+        max-width: 100%;
+
+        > i { flex: none; font-size: 13px; color: var(--dbk-text-muted); }
+        > input { flex: 1 1 auto; min-width: 0; }
+    }
+
+    .cp-show-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--dbk-space-3);
+        margin-top: var(--dbk-space-1);
+    }
+
+    .cp-back {
+        font-size: var(--dbk-fs-sm);
+        color: var(--dbk-text-2);
+
+        &:hover { color: var(--dbk-accent); text-decoration: none; }
+    }
+
+    .cp-periods-wrap { max-height: 340px; overflow-y: auto; }
+
+    @media (max-width: 575.98px) {
+        .dbk-card-header { flex-wrap: wrap; }
+        .dbk-card-actions { width: 100%; }
+        .dbk-reports-search { width: 100%; }
+    }
+
+    @media (max-width: 1199.98px) {
+        .cp-donut-box { height: 380px; }
+    }
+
+    @media print {
+        font-size: 11px;
+
+        .cp-noprint, .cp-noprint-chart { display: none !important; }
+        .dbk-table-wrap { overflow: visible !important; max-height: none !important; }
+        .dbk-table th, .dbk-table td { position: static !important; }
+    }
+}
+
+@media print {
+    body:has(.cp-report) {
+        aside, #header, .main-header, .preloader-container, .mobile-close-sidebar-panel { display: none !important; }
+        .body-wrapper, .main-container { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        .content-wrapper { padding: 0 !important; }
+    }
+}
+
+// ---------------------------------------------------------------- saved reports
+.dbk-reports-saved {
+    .sr-name {
+        min-width: 180px;
+        max-width: 230px;
+
+        a { color: var(--dbk-accent); font-weight: 500; }
+        .sr-desc { max-width: 210px; font-size: var(--dbk-fs-xs); color: var(--dbk-text-muted); }
+    }
+
+    .sr-badge { white-space: nowrap; }
+
+    // S12: schedule + recipients + last sending in one column; long header labels wrap instead of widening the table
+    .sr-table thead th { white-space: normal; }
+    .sr-schedule {
+        min-width: 150px;
+        white-space: normal;
+
+        .sr-desc { margin-top: 4px; font-size: var(--dbk-fs-xs); line-height: 16px; color: var(--dbk-text-muted); }
+    }
+
+    .sr-shared-icon { color: var(--dbk-accent); }
+
+    // The actions stay visible when the table scrolls horizontally
+    .sr-table th:last-child,
+    .sr-table td.sr-actions {
+        position: sticky;
+        right: 0;
+        z-index: 1;
+        background-color: var(--dbk-surface);
+        box-shadow: -1px 0 0 var(--dbk-border);
+    }
+
+    .sr-table thead th:last-child { z-index: 3; background-color: var(--dbk-surface-2); }
+    .sr-table tbody tr:nth-child(even) td.sr-actions { background-color: var(--dbk-surface-2); }
+    .sr-table tbody tr:hover td.sr-actions { background-color: var(--dbk-accent-soft); }
+
+    .sr-actions {
+        .btn + .btn { margin-left: 4px; }
+        .btn { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+        .sr-delete { color: var(--dbk-bad); }
+        .sr-delete:hover { text-decoration: none; background: var(--dbk-bad-soft); }
+    }
+}
